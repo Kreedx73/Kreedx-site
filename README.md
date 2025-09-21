@@ -1,4 +1,4 @@
--- Painel KreedxMD - emoji 🐢, otimização real, arrastável
+-- Painel KreedxMD - Roxo, emoji 🐢, otimização real, arrastável, remove árvores
 
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -168,9 +168,11 @@ turtleBtn.ZIndex = 100
 turtleBtn.Active = true
 turtleBtn.Draggable = true
 
--- Otimização REAL
+-- Otimização REAL + REMOVER ÁRVORES
 local otimizado = false
 local removedObjects = {}
+local removedTrees = {}
+
 local function otimizarJogo()
     local lighting = game:GetService("Lighting")
     local terrain = workspace:FindFirstChildOfClass("Terrain")
@@ -202,7 +204,19 @@ local function otimizarJogo()
         terrain.WaterReflectance = 0
         terrain.WaterTransparency = 1
     end
-    status.Text = "Otimização máxima ativada!"
+    -- Remover todas as árvores do mapa
+    for _,obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj.Parent ~= nil then
+            local nameLower = string.lower(obj.Name)
+            if nameLower:find("arvore") or nameLower:find("tree") then
+                if not removedTrees[obj] then
+                    removedTrees[obj] = obj.Parent
+                    obj.Parent = nil -- Remove do mapa
+                end
+            end
+        end
+    end
+    status.Text = "Otimização máxima ativada! Árvores removidas!"
 end
 
 local function restaurarJogo()
@@ -214,13 +228,20 @@ local function restaurarJogo()
         end
     end
     removedObjects = {}
+    -- Restaurar árvores (se possível)
+    for obj,parent in pairs(removedTrees) do
+        if obj.Parent == nil then
+            obj.Parent = parent
+        end
+    end
+    removedTrees = {}
     local lighting = game:GetService("Lighting")
     lighting.GlobalShadows = true
     lighting.FogEnd = 500
     lighting.Brightness = 2
     lighting.OutdoorAmbient = Color3.new(0.5,0.5,0.5)
     lighting.Ambient = Color3.new(0.5,0.5,0.5)
-    status.Text = "Otimização desativada."
+    status.Text = "Otimização desativada. Árvores restauradas!"
 end
 
 otimBtn.MouseButton1Click:Connect(function()
@@ -251,4 +272,4 @@ xBtn.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
 
--- Fim do painel KreedxMD roxo, bonito e pronto para mais categorias!
+-- Fim do painel KreedxMD roxo, bonito, otimização real, remove árvores!
